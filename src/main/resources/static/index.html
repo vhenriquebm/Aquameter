@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AquaMeter — Painel do Produtor</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 3C16 3 6 14 6 20a10 10 0 0 0 20 0C26 14 16 3 16 3z' fill='%231a7f64'/></svg>">
+</head>
+<body>
+<header class="topo">
+    <div class="marca">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C16 3 6 14 6 20a10 10 0 0 0 20 0C26 14 16 3 16 3z"/></svg>
+        <span>AquaMeter</span>
+    </div>
+    <div class="topo-acoes">
+        <label class="seletor">
+            <span>Propriedade</span>
+            <select id="selPropriedade" aria-label="Propriedade"></select>
+        </label>
+        <button class="btn btn-sec" id="btnNovaPropriedade">+ Propriedade</button>
+    </div>
+</header>
+
+<main id="conteudo">
+    <section class="saudacao">
+        <div>
+            <h1 id="titulo">Carregando…</h1>
+            <p id="subtitulo" class="muted"></p>
+        </div>
+        <p class="muted atualizado">Atualizado às <strong id="atualizadoEm">--:--</strong></p>
+    </section>
+
+    <section class="kpis" id="kpis"></section>
+
+    <section class="bloco">
+        <div class="bloco-cab">
+            <h2>O que fazer agora</h2>
+            <button class="btn btn-sec btn-mini" id="btnResumo">Copiar resumo para WhatsApp</button>
+        </div>
+        <div id="recomendacoes" class="recomendacoes"></div>
+    </section>
+
+    <div class="grade">
+        <section class="bloco grande">
+            <div class="bloco-cab">
+                <h2>Consumo diário — últimos 30 dias</h2>
+            </div>
+            <div class="grafico"><canvas id="graficoConsumo"></canvas></div>
+        </section>
+
+        <section class="bloco">
+            <div class="bloco-cab">
+                <h2>Alertas abertos</h2>
+                <span class="contador" id="contAlertas">0</span>
+            </div>
+            <ul id="alertas" class="alertas"></ul>
+        </section>
+    </div>
+
+    <section class="bloco">
+        <div class="bloco-cab">
+            <h2>Medidores — consumo de hoje</h2>
+            <button class="btn btn-sec" id="btnNovoMedidor">+ Medidor</button>
+        </div>
+        <div id="medidores" class="medidores"></div>
+    </section>
+
+    <section class="bloco">
+        <div class="bloco-cab">
+            <h2>Insumos aplicados</h2>
+            <span class="muted" id="totalInsumos"></span>
+        </div>
+        <div class="insumos">
+            <form id="formInsumo" class="form-insumo">
+                <h3>Registrar aplicação</h3>
+                <label>Data <input type="date" name="dataAplicacao" required></label>
+                <label>Insumo <input name="insumo" placeholder="Ex.: Ureia 45% N" required></label>
+                <label>Categoria
+                    <select name="categoria">
+                        <option value="FERTILIZANTE">Fertilizante</option>
+                        <option value="DEFENSIVO">Defensivo</option>
+                        <option value="SEMENTE">Semente</option>
+                        <option value="COMBUSTIVEL">Combustível</option>
+                        <option value="OUTRO">Outro</option>
+                    </select>
+                </label>
+                <div class="duas">
+                    <label>Quantidade <input type="number" name="quantidade" min="0.001" step="0.001" required></label>
+                    <label>Unidade
+                        <select name="unidade"><option>kg</option><option>L</option><option>t</option><option>sc</option></select>
+                    </label>
+                </div>
+                <div class="duas">
+                    <label>Custo total (R$) <input type="number" name="custoTotal" min="0" step="0.01" required></label>
+                    <label>Setor <input name="setor" placeholder="Talhão A"></label>
+                </div>
+                <button class="btn" type="submit">Salvar aplicação</button>
+            </form>
+            <div class="tabela-insumos">
+                <div id="categorias" class="categorias"></div>
+                <table>
+                    <thead><tr><th>Data</th><th>Insumo</th><th>Categoria</th><th class="num">Qtd.</th><th class="num">Custo</th><th>Setor</th></tr></thead>
+                    <tbody id="listaInsumos"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="bloco demo">
+        <div class="bloco-cab">
+            <h2>Simulador de sensores IoT</h2>
+            <span class="muted">Envia leituras para a mesma API usada pelos medidores de campo (POST /api/leituras)</span>
+        </div>
+        <div class="demo-acoes">
+            <button class="btn" id="btnSimNormal">Simular 1 hora de leituras</button>
+            <button class="btn btn-alerta" id="btnSimVazamento">Simular rompimento de tubulação</button>
+        </div>
+    </section>
+</main>
+
+<footer class="rodape muted">AquaMeter MVP · Spring Boot + Oracle Database 23ai · FIAP Startup One</footer>
+
+<dialog id="dlgPropriedade">
+    <form method="dialog" id="formPropriedade" class="form-dialogo">
+        <h3>Nova propriedade</h3>
+        <label>Nome da propriedade <input name="nome" required></label>
+        <label>Produtor <input name="produtor" required></label>
+        <div class="duas">
+            <label>Município <input name="municipio" required></label>
+            <label>UF <input name="uf" maxlength="2" minlength="2" required></label>
+        </div>
+        <div class="duas">
+            <label>Área (ha) <input type="number" name="areaHa" min="1" step="0.01" required></label>
+            <label>Cultura principal <input name="culturaPrincipal"></label>
+        </div>
+        <div class="duas">
+            <label>Custo da água (R$/m³) <input type="number" name="tarifaAguaM3" min="0" step="0.01" value="0.35" required></label>
+            <label>Tarifa de energia (R$/kWh) <input type="number" name="tarifaEnergiaKwh" min="0" step="0.01" value="0.68" required></label>
+        </div>
+        <div class="dialogo-acoes">
+            <button class="btn btn-sec" value="cancelar" formnovalidate>Cancelar</button>
+            <button class="btn" value="salvar">Salvar</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog id="dlgMedidor">
+    <form method="dialog" id="formMedidor" class="form-dialogo">
+        <h3>Novo medidor</h3>
+        <label>Nome <input name="nome" placeholder="Ex.: Hidrômetro do pivô" required></label>
+        <div class="duas">
+            <label>Tipo
+                <select name="tipo"><option value="AGUA">Água (m³)</option><option value="ENERGIA">Energia (kWh)</option></select>
+            </label>
+            <label>Setor <input name="setor" placeholder="Talhão C"></label>
+        </div>
+        <label>Limite diário (o máximo que esse medidor deve gastar em um dia)
+            <input type="number" name="limiteDiario" min="0.1" step="0.1" placeholder="Ex.: 90" required>
+            <small class="ajuda">Não sabe? Use o consumo de um dia normal de irrigação + 10%. Para referência, 1 m³ = 1.000 litros. Dá para ajustar depois.</small>
+        </label>
+        <div class="dialogo-acoes">
+            <button class="btn btn-sec" value="cancelar" formnovalidate>Cancelar</button>
+            <button class="btn" value="salvar">Salvar</button>
+        </div>
+    </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
